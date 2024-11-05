@@ -1,5 +1,4 @@
-{
-  "blocks": [
+export const basicBlocks = [
     {
       "id": "text-block",
       "label": "Text Block",
@@ -21,7 +20,7 @@
     {
       "id": "image-block",
       "label": "Image Block",
-      "content": "<img data-gjs-type='default' src='https://grapesjs.com/assets/images/sc-grapesjs-newsletter-demo.jpg' alt='Placeholder Image' class='w-full h-auto'/>",
+      "content": "<img src='https://grapesjs.com/assets/images/sc-grapesjs-newsletter-demo.jpg' alt='Placeholder Image' class='w-full h-auto'/>",
       "category": "Basic",
       "attributes": {
         "class": "fa fa-image"
@@ -39,7 +38,7 @@
     {
       "id": "youtube-block",
       "label": "YouTube Video Block",
-      "content": "<iframe class='w-full h-64' src='https://www.youtube.com/embed/dQw4w9WgXcQ' frameborder='0' allowfullscreen></iframe>",
+      "content": "<iframe class='w-full h-64' src='https://www.youtube.com/embed/' frameborder='0' allowfullscreen></iframe>",
       "category": "Basic",
       "attributes": {
         "class": "fa fa-youtube"
@@ -109,5 +108,4 @@
       }
   }
     
-  ]
-}
+  ];

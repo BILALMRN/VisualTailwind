@@ -3,21 +3,16 @@ import {
   pathStyles,
   styleManagerBaseTailwindCss,
 } from "./utile.js";
-import {blockFiles} from "./blocks/blocks.js";
+import {basicBlocks} from "./blocks/basic-block.js"
+import {filesBlocks} from "./blocks/blocks.js"
 
 var editor = grapesjs.init({
   container: "#gjs",
   fromElement: true,
+  telemetry: false,
   height: "100vh",
   width: "auto",
   styleManager: styleManagerBaseTailwindCss,
-  // storageManager: {
-  //   type: "remote",
-  //   autosave: true,
-  //   autoload: true,
-  //   // urlStore: "/extensions/BEdit/save",
-  //   // urlLoad: "/extensions/BEdit/load",
-  // },
   canvas: {
     styles: pathStyles,
     scripts: pathScripts,
@@ -76,8 +71,14 @@ editor.Panels.addPanel({
 });
 // Custom panel setup
 editor.Panels.addButton("options", {
+  id: "EnableCostumBlocks",
+  className: `bg-blue-500  text-white p-1 rounded shadow-lg hover:bg-blue-600`,
+  label: "EnableCostumBlocks",
+  command: "Enable-Costum-Blocks",
+});
+editor.Panels.addButton("options", {
   id: "undo",
-  className: " bg-blue-500 text-white rounded shadow-lg hover:bg-blue-600", // Optional: Font Awesome icon
+  className: "bg-blue-500 text-white rounded shadow-lg hover:bg-blue-600", 
   label: "←",
   command: "undo-command",
 });
@@ -91,7 +92,7 @@ editor.Panels.addButton("options", {
 
 editor.Panels.addButton("options", {
   id: "undoAll",
-  className: " bg-blue-500 text-white rounded shadow-lg hover:bg-blue-600", // Optional: Font Awesome icon
+  className: " bg-blue-500 text-white rounded shadow-lg hover:bg-blue-600", 
   label: "X",
   command: "undoAll-command",
 });
@@ -99,44 +100,41 @@ editor.Panels.addButton("options", {
 editor.Panels.addButton("options", {
   id: "save",
   className:
-    "bg-blue-500 text-white w-full rounded shadow-lg hover:bg-blue-600", // Optional: Font Awesome icon
+    "bg-blue-500 text-white rounded shadow-lg hover:bg-blue-600", 
   label: "Save",
   command: "save-command",
 });
 
-const undoManager = editor.UndoManager;
+//#endregion
 
-// Command to undo the last action
+
+//#region Commands
+
+const undoManager = editor.UndoManager;
 editor.Commands.add("undo-command", {
   run(editor) {
-    undoManager.undo(); // Call the undo method
+    undoManager.undo();
   },
 });
 
-// Command to redo the last undone action
 editor.Commands.add("redo-command", {
   run(editor) {
-    undoManager.redo(); // Call the redo method
+    undoManager.redo(); 
   },
 });
 
-// Optionally, add a command to reset to the initial state
 editor.Commands.add("undoAll-command", {
   run(editor) {
     undoManager.undoAll();
   },
 });
-//#endregion
-
-//#region Commands
 
 // Add the save command
 editor.Commands.add("save-command", {
   run(editor) {
     const htmlContent = editor.getHtml();
-    // const cssContent = editor.getCss();
 
-    const blob = new Blob([`<html><head> </head>${htmlContent}</html>`], {
+    const blob = new Blob([`<html><head> <script src="https://cdn.tailwindcss.com"></script> </head>${htmlContent}</html>`], {
       type: "text/html",
     });
 
@@ -150,58 +148,48 @@ editor.Commands.add("save-command", {
   },
 });
 
+editor.Commands.add("Enable-Costum-Blocks", {
+  run(editor) {
+    filesBlocks.map(blocks => 
+    blocks.forEach(block => {
+      editor.Blocks.add(block.id, {
+        label: block.label,
+        content: block.content,
+        category: block.category,
+        attributes: block.attributes,
+        onClick: (blockInstance) => {
+          showPreview(blockInstance.get("content"));
+        },
+      });
+    })
+);
+
+  },
+});
+
 //#endregion
 
 //#region Add custom blocks with Tailwind CSS
-// Fetch the blocks from the JSON file
-// Fetch all block files
-Promise.all(blockFiles.map(file => fetch(`blocks/${file}`)))
-  .then(responses => {
-    // Check if all responses are okay
-    responses.forEach(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    });
-    return Promise.all(responses.map(response => response.json())); // Parse all JSON responses
-  })
-  .then(dataArrays => {
-    // `dataArrays` is an array of arrays containing block data
-    dataArrays.forEach(data => {
-      data.blocks.forEach(block => {
-        // Adding each block to the editor
-        editor.Blocks.add(block.id, {
-          label: block.label,
-          content: block.content,
-          category: block.category,
-          attributes: block.attributes,
-          onClick: (blockInstance) => {
-            // Show the preview when the block is clicked
-            showPreview(blockInstance.get("content")); // Your preview function
-          },
-        });
-      });
-    });
-  })
-  .catch(error => console.error("Error loading blocks:", error));
+basicBlocks.forEach(block => {
+  editor.Blocks.add(block.id, {
+    label: block.label,
+    content: block.content,
+    category: block.category,
+    attributes: block.attributes,
+    onClick: (blockInstance) => {
+      showPreview(blockInstance.get("content")); 
+    },
+  });
+})
 
 function showPreview(content) {
-  // Create the modal element
   const modal = document.createElement("div");
-  modal.className =
-    "fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"; // Tailwind classes for modal overlay
+  modal.className = "fixed inset-0 flex items-center justify-center z-50 bg-white "; 
 
-  // Create the modal content
   const modalContent = document.createElement("div");
   modalContent.className =
-    "bg-white p-6 rounded-lg shadow-lg w-1/2 h-1/3 flex flex-col items-center"; // Tailwind classes for modal content
-  modalContent.innerHTML = `
-        <h2 class="text-xl font-semibold mb-4">Preview of the Block</h2>
-        <main class="flex-grow container overflow-auto">${content}</main>
-    `;
-  modalContent.querySelectorAll("div").forEach(child => {
-        child.style.border = "2px solid black"; // Set the desired border style
-    });
+    "w-full h-full flex items-center"; 
+  modalContent.innerHTML = `<main class="w-full h-full">${content}</main>`;
   // Append modal content to modal
   modal.appendChild(modalContent);
   const canvas = editor.Canvas.getBody();
@@ -209,8 +197,7 @@ function showPreview(content) {
 
   // Add event listener to close modal when mouse outside element is detected
   document.body.addEventListener("mouseout", (event) => {
-    // document.body.removeChild(modal); // Remove modal from body
-    canvas.removeChild(modal); // Remove modal from body
+    canvas.removeChild(modal); 
   });
 }
 //#endregion
